@@ -101,3 +101,28 @@ class RealEstateModel:
         fig = plt.gcf()
         return fig
 
+    def get_distribution_plot(self):
+        """
+        Generates a price distribution plot.
+        Filters out the top 1% of outliers to make the visualization more readable.
+
+        :return: A matplotlib figure object containing the price distribution histogram.
+        """
+        if self.data is None:
+            return None
+            
+        plt.figure(figsize=(8, 6))
+        
+        # Filter top 1% of outliers for better visualization
+        threshold = self.data[self.target].quantile(0.99)
+        plot_data = self.data[self.data[self.target] <= threshold]
+        
+        sns.histplot(plot_data[self.target], bins=50, kde=True)
+        plt.title(f"Price Distribution (0 - 99th Percentile: < ${threshold:,.0f})")
+        plt.xlabel("Price")
+        plt.tight_layout()
+        fig = plt.gcf()
+        return fig
+
+
+
