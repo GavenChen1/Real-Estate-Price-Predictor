@@ -71,3 +71,33 @@ class RealEstateModel:
         except Exception as e:
             return f"Error loading data: {str(e)}"
 
+    def get_correlation_plot(self):
+        """
+        Generates a correlation heatmap figure.
+        Includes the newly created 'zip_code_encoded' feature to show location correlation.
+
+        :return: A matplotlib figure object containing the correlation heatmap.
+        """
+        if self.data is None:
+            return None
+        
+        # Create a copy for visualization that includes the numeric encoded zip
+        viz_data = self.data.copy()
+        
+        # Simple encoding for visualization if not yet trained
+        if self.zip_encoding_map is None:
+             # Calculate temporary means for visualization
+             temp_map = viz_data.groupby('zip_code')[self.target].mean()
+             viz_data['zip_code_encoded'] = viz_data['zip_code'].map(temp_map)
+        else:
+             viz_data['zip_code_encoded'] = viz_data['zip_code'].map(self.zip_encoding_map).fillna(self.global_mean_price)
+
+        plt.figure(figsize=(8, 6))
+        # correlate only numeric columns
+        corr = viz_data[self.train_features + [self.target]].corr()
+        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
+        plt.title("Feature Correlation Matrix")
+        plt.tight_layout()
+        fig = plt.gcf()
+        return fig
+
