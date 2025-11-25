@@ -246,3 +246,41 @@ class RealEstateModel:
             metrics["CV Std Dev"] = self.cv_scores["Std R2"]
         
         return metrics
+
+    def predict(self, bed, bath, acre_lot, house_size, zip_code, city="", state=""):
+        """
+        Predicts price for given inputs using hierarchical location encoding.
+
+        :return: A tuple (formatted_price_string, location_score_string)
+        """
+        if self.model is None:
+            return "Model not trained.", "N/A"
+            
+        # Handle the inputs
+        zip_str = str(zip_code).replace('.0', '')
+        
+        # Hierarchical Lookup
+        if zip_str in self.zip_encoding_map:
+            encoded_val = self.zip_encoding_map[zip_str]
+            loc_status = f"${encoded_val:,.0f} (Zip Avg)"
+        elif city in self.city_encoding_map:
+            encoded_val = self.city_encoding_map[city]
+            loc_status = f"${encoded_val:,.0f} (City Avg)"
+        elif state in self.state_encoding_map:
+            encoded_val = self.state_encoding_map[state]
+            loc_status = f"${encoded_val:,.0f} (State Avg)"
+        else:
+            encoded_val = self.global_mean_price
+            loc_status = "Global Avg (Loc Unknown)"
+            
+        input_data = pd.DataFrame([[bed, bath, acre_lot, house_size, encoded_val]], columns=self.train_features)
+        
+        # Predict (returns log price)
+        log_prediction = self.model.predict(input_data)[0]
+        # Convert back to actual price
+        prediction = np.expm1(log_prediction)
+        
+        return f"${prediction:,.2f}", loc_status
+
+
+
