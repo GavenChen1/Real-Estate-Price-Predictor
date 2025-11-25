@@ -98,7 +98,42 @@ class RealEstateApp:
         self.train_btn = ttk.Button(control_frame, text="Train Model", command=self.train_model)
         self.train_btn.pack(fill="x", pady=2)
         
-       
+        # Evaluation
+        ttk.Separator(control_frame, orient="horizontal").pack(fill="x", pady=10)
+        ttk.Label(control_frame, text="4. Evaluation Metrics").pack(fill="x", pady=(0, 5))
+        self.metrics_text = tk.Text(control_frame, height=8, width=30, state="disabled") # Slightly larger default
+        self.metrics_text.pack(fill="both", expand=True, pady=2) # Expand to fill space
+
+        # Prediction
+        ttk.Separator(control_frame, orient="horizontal").pack(fill="x", pady=10)
+        ttk.Label(control_frame, text="5. Predict Price").pack(fill="x", pady=(0, 5))
+        
+        self.inputs = {}
+        # Added 'State' and 'City' to inputs for hierarchical fallback
+        for feature in ['Bed', 'Bath', 'Acre Lot', 'House Size', 'Zip Code', 'City', 'State']:
+            frame = ttk.Frame(control_frame)
+            frame.pack(fill="x", pady=2)
+            ttk.Label(frame, text=feature, width=10).pack(side="left")
+            entry = ttk.Entry(frame)
+            entry.pack(side="right", expand=True, fill="x")
+            self.inputs[feature] = entry
+            
+        self.predict_btn = ttk.Button(control_frame, text="Predict", command=self.make_prediction)
+        self.predict_btn.pack(fill="x", pady=10)
+        
+        # Result Labels
+        self.result_lbl = ttk.Label(control_frame, text="Prediction: -", font=("Arial", 12, "bold"), wraplength=200)
+        self.result_lbl.pack(fill="x", pady=2)
+        self.loc_score_lbl = ttk.Label(control_frame, text="Location Score: -", font=("Arial", 10), foreground="gray", wraplength=200)
+        self.loc_score_lbl.pack(fill="x", pady=2)
+
+        # --- Right Panel: Visualization Area ---
+        self.viz_frame = ttk.LabelFrame(parent, text="Visualizations", padding=10)
+        self.viz_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        
+        # Placeholder for canvas
+        self.canvas_area = ttk.Label(self.viz_frame, text="Plots will appear here")
+        self.canvas_area.pack(expand=True)
 
     def load_data(self):
         """
@@ -190,5 +225,33 @@ class RealEstateApp:
         self.status_lbl.config(text="Model Trained", foreground="green")
         messagebox.showinfo("Info", msg)
 
+    def make_prediction(self):
+        """
+        Handle prediction request from GUI input fields.
+        Gathers user input including Bed, Bath, Lot Size, House Size, Zip Code, City, and State.
 
+        :return: None
+        """
+        try:
+            # Get values from inputs
+            bed = float(self.inputs['Bed'].get())
+            bath = float(self.inputs['Bath'].get())
+            acre_lot = float(self.inputs['Acre Lot'].get())
+            house_size = float(self.inputs['House Size'].get())
+            zip_code = self.inputs['Zip Code'].get()
+            city = self.inputs['City'].get()   # Get city input
+            state = self.inputs['State'].get() # Get state input
+            
+            price_pred, loc_score = self.model_system.predict(bed, bath, acre_lot, house_size, zip_code, city, state)
+            
+            self.result_lbl.config(text=f"Prediction: {price_pred}")
+            self.loc_score_lbl.config(text=f"Location Score: {loc_score}")
+            
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numeric values for Bed, Bath, etc.")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = RealEstateApp(root)
+    root.mainloop()
 
