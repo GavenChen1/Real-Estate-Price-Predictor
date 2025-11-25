@@ -98,40 +98,97 @@ class RealEstateApp:
         self.train_btn = ttk.Button(control_frame, text="Train Model", command=self.train_model)
         self.train_btn.pack(fill="x", pady=2)
         
-        # Evaluation
-        ttk.Separator(control_frame, orient="horizontal").pack(fill="x", pady=10)
-        ttk.Label(control_frame, text="4. Evaluation Metrics").pack(fill="x", pady=(0, 5))
-        self.metrics_text = tk.Text(control_frame, height=8, width=30, state="disabled") # Slightly larger default
-        self.metrics_text.pack(fill="both", expand=True, pady=2) # Expand to fill space
+       
 
-        # Prediction
-        ttk.Separator(control_frame, orient="horizontal").pack(fill="x", pady=10)
-        ttk.Label(control_frame, text="5. Predict Price").pack(fill="x", pady=(0, 5))
+    def load_data(self):
+        """
+        Handle the data loading process via GUI.
         
-        self.inputs = {}
-        # Added 'State' and 'City' to inputs for hierarchical fallback
-        for feature in ['Bed', 'Bath', 'Acre Lot', 'House Size', 'Zip Code', 'City', 'State']:
-            frame = ttk.Frame(control_frame)
-            frame.pack(fill="x", pady=2)
-            ttk.Label(frame, text=feature, width=10).pack(side="left")
-            entry = ttk.Entry(frame)
-            entry.pack(side="right", expand=True, fill="x")
-            self.inputs[feature] = entry
+        :return: None
+        """
+        # Prefer default file if exists, else ask
+        default_file = "realtor-data.zip.csv"
+        if os.path.exists(default_file):
+            filepath = default_file
+        else:
+            filepath = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
             
-        self.predict_btn = ttk.Button(control_frame, text="Predict", command=self.make_prediction)
-        self.predict_btn.pack(fill="x", pady=10)
+        if not filepath:
+            return
+            
+        self.status_lbl.config(text="Loading...", foreground="blue")
+        self.root.update()
         
-        # Result Labels
-        self.result_lbl = ttk.Label(control_frame, text="Prediction: -", font=("Arial", 12, "bold"), wraplength=200)
-        self.result_lbl.pack(fill="x", pady=2)
-        self.loc_score_lbl = ttk.Label(control_frame, text="Location Score: -", font=("Arial", 10), foreground="gray", wraplength=200)
-        self.loc_score_lbl.pack(fill="x", pady=2)
+        # Load full dataset (sample_size=None) for maximum accuracy
+        msg = self.model_system.load_data(filepath, sample_size=None)
+        self.status_lbl.config(text=msg[:30] + "...", foreground="green")
+        messagebox.showinfo("Info", msg)
 
-        # --- Right Panel: Visualization Area ---
-        self.viz_frame = ttk.LabelFrame(parent, text="Visualizations", padding=10)
-        self.viz_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+    def display_figure(self, fig):
+        """
+        Display a matplotlib figure on the Tkinter canvas.
+
+        :param fig: The matplotlib figure to display.
+        :type fig: matplotlib.figure.Figure
+        :return: None
+        """
+        if fig is None:
+            messagebox.showerror("Error", "No data to visualize.")
+            return
+            
+        for widget in self.viz_frame.winfo_children():
+            widget.destroy()
+            
+        canvas = FigureCanvasTkAgg(fig, master=self.viz_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(expand=True, fill="both")
+
+    def show_correlation(self):
+        """
+        Trigger the display of the correlation plot.
+
+        :return: None
+        """
+        fig = self.model_system.get_correlation_plot()
+        self.display_figure(fig)
+
+    def show_distribution(self):
+        """
+        Trigger the display of the price distribution plot.
+
+        :return: None
+        """
+        fig = self.model_system.get_distribution_plot()
+        self.display_figure(fig)
+
+    def train_model(self):
+        """
+        Handle model training via GUI interaction.
+
+        :return: None
+        """
+        if self.model_system.data is None:
+            messagebox.showwarning("Warning", "Load data first!")
+            return
+            
+        self.status_lbl.config(text="Training...", foreground="blue")
+        self.root.update()
         
-        # Placeholder for canvas
-        self.canvas_area = ttk.Label(self.viz_frame, text="Plots will appear here")
-        self.canvas_area.pack(expand=True)
+        model_type = self.model_var.get()
+        use_cv = self.cv_var.get()
+        
+        # Pass the CV checkbox value to the backend
+        msg = self.model_system.train_model(model_type, use_cv=use_cv)
+        metrics = self.model_system.evaluate_model()
+        
+        self.metrics_text.config(state="normal")
+        self.metrics_text.delete(1.0, tk.END)
+        for k, v in metrics.items():
+            self.metrics_text.insert(tk.END, f"{k}: {v}\n")
+        self.metrics_text.config(state="disabled")
+        
+        self.status_lbl.config(text="Model Trained", foreground="green")
+        messagebox.showinfo("Info", msg)
+
+
 
