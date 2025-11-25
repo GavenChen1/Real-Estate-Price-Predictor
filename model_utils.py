@@ -214,3 +214,35 @@ class RealEstateModel:
         
         return f"{model_type} trained successfully{msg_suffix}."
 
+    def evaluate_model(self):
+        """
+        Returns evaluation metrics. Includes CV scores if available.
+
+        :return: A dictionary containing MSE, RMSE, MAE, R2 Score, and CV info.
+        """
+        if self.model is None:
+            return "Model not trained."
+            
+        metrics = {}
+        
+        # Standard Metrics on Test Set
+        if self.y_test is not None:
+            mse = mean_squared_error(self.y_test, self.y_pred)
+            rmse = mse ** 0.5
+            mae = mean_absolute_error(self.y_test, self.y_pred)
+            r2 = r2_score(self.y_test, self.y_pred)
+            
+            metrics.update({
+                "Test MSE": f"{mse:,.2f}",
+                "Test RMSE": f"{rmse:,.2f}",
+                "Test MAE": f"{mae:,.2f}",
+                "Test R2": f"{r2:.4f}"
+            })
+            
+        # Add CV Metrics if they exist
+        if self.cv_scores:
+            metrics["--- CV Results ---"] = ""
+            metrics["CV Mean R2"] = self.cv_scores["Mean R2"]
+            metrics["CV Std Dev"] = self.cv_scores["Std R2"]
+        
+        return metrics
