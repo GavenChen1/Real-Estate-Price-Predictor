@@ -124,5 +124,93 @@ class RealEstateModel:
         fig = plt.gcf()
         return fig
 
+    def train_model(self, model_type='Random Forest', use_cv=False):
+        """
+        Trains the machine learning model using Target Encoding for Zip Codes.
+        Optionally performs K-Fold Cross-Validation.
 
+        :param model_type: The type of model to train ('Random Forest', 'Linear Regression', or 'Gradient Boosting').
+        :type model_type: str
+        :param use_cv: Whether to use Cross-Validation (default: False).
+        :type use_cv: bool
+        :return: A status message indicating the training result.
+        """
+        if self.data is None:
+            return "No data loaded."
+            
+        # --- Target Encoding Logic (Hierarchical) ---
+        # 1. Calculate global mean price
+        self.global_mean_price = self.data[self.target].mean()
+        
+        # 2. Calculate mean price per STATE (Backup Level 2)
+        self.state_encoding_map = self.data.groupby('state')[self.target].mean()
+
+        # 3. Calculate mean price per CITY (Backup Level 1)
+        # Trust city if > 10 sales
+        city_stats = self.data.groupby('city')[self.target].agg(['mean', 'count'])
+        self.city_encoding_map = city_stats[city_stats['count'] >= 10]['mean']
+
+        # 4. Calculate mean price per ZIP CODE (Primary Level)
+        zip_stats = self.data.groupby('zip_code')[self.target].agg(['mean', 'count'])
+        # Only trust zip codes with at least 20 sales
+        self.zip_encoding_map = zip_stats[zip_stats['count'] >= 20]['mean']
+        
+        # 5. Apply the Hierarchical Mapping
+        def get_location_score(row):
+            # Try Zip Code first
+            if row['zip_code'] in self.zip_encoding_map:
+                return self.zip_encoding_map[row['zip_code']]
+            # Try City second
+            elif row['city'] in self.city_encoding_map:
+                return self.city_encoding_map[row['city']]
+            # Try State third
+            elif row['state'] in self.state_encoding_map:
+                return self.state_encoding_map[row['state']]
+            # Fallback to Global
+            else:
+                return self.global_mean_price
+
+        # Create the single encoded feature
+        self.data['location_encoded'] = self.data.apply(get_location_score, axis=1)
+        # -----------------------------
+
+        X = self.data[self.train_features]
+        # Apply Log Transformation to Target: log1p(x) = log(x + 1)
+        y = np.log1p(self.data[self.target])
+
+        # Initialize Model
+        if model_type == 'Linear Regression':
+            self.model = LinearRegression()
+        elif model_type == 'Gradient Boosting':
+            self.model = HistGradientBoostingRegressor(random_state=42)
+        else:
+            self.model = RandomForestRegressor(n_estimators=100, random_state=42)
+
+        # CROSS VALIDATION LOGIC
+        if use_cv:
+            # 5-Fold CV
+            kf = KFold(n_splits=5, shuffle=True, random_state=42)
+            # We use 'r2' scoring. Note: cross_val_score returns an array of scores.
+            scores = cross_val_score(self.model, X, y, cv=kf, scoring='r2')
+            self.cv_scores = {
+                "Mean R2": f"{scores.mean():.4f}",
+                "Std R2": f"{scores.std():.4f}",
+                "Scores": [f"{s:.2f}" for s in scores]
+            }
+            msg_suffix = f" (CV R2: {scores.mean():.2f})"
+        else:
+            self.cv_scores = None
+            msg_suffix = ""
+
+        # Standard Train/Test Split for final model (needed for 'predict' function later)
+        X_train, self.X_test, y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        self.model.fit(X_train, y_train)
+        # Predict on test set (Log scale)
+        y_pred_log = self.model.predict(self.X_test)
+        
+        # Convert back to original scale for evaluation (exp(x) - 1)
+        self.y_test = np.expm1(self.y_test)
+        self.y_pred = np.expm1(y_pred_log)
+        
+        return f"{model_type} trained successfully{msg_suffix}."
 
