@@ -47,6 +47,7 @@ class RealEstateModel:
             # We use pandas to handle potentially large datasets efficiently
             df = pd.read_csv(filepath)
             
+            
             # Ensure zip_code is treated as string/categorical, not a number
             df['zip_code'] = df['zip_code'].astype(str).str.replace('.0', '', regex=False)
             
@@ -74,23 +75,53 @@ class RealEstateModel:
     def get_correlation_plot(self):
         """
         Generates a correlation heatmap figure.
-        Includes the newly created 'zip_code_encoded' feature to show location correlation.
+        Includes the newly created 'location_encoded' feature to show location correlation.
 
         :return: A matplotlib figure object containing the correlation heatmap.
         """
         if self.data is None:
             return None
         
-        # Create a copy for visualization that includes the numeric encoded zip
+        # Create a copy for visualization that includes the numeric encoded location
         viz_data = self.data.copy()
         
-        # Simple encoding for visualization if not yet trained
-        if self.zip_encoding_map is None:
-             # Calculate temporary means for visualization
-             temp_map = viz_data.groupby('zip_code')[self.target].mean()
-             viz_data['zip_code_encoded'] = viz_data['zip_code'].map(temp_map)
-        else:
-             viz_data['zip_code_encoded'] = viz_data['zip_code'].map(self.zip_encoding_map).fillna(self.global_mean_price)
+        # Create location_encoded using hierarchical encoding if not already created
+        if 'location_encoded' not in viz_data.columns:
+            # Calculate encoding maps if not yet trained
+            if self.zip_encoding_map is None:
+                # Calculate temporary encoding maps for visualization
+                global_mean = viz_data[self.target].mean()
+                state_map = viz_data.groupby('state')[self.target].mean()
+                city_stats = viz_data.groupby('city')[self.target].agg(['mean', 'count'])
+                city_map = city_stats[city_stats['count'] >= 10]['mean']
+                zip_stats = viz_data.groupby('zip_code')[self.target].agg(['mean', 'count'])
+                zip_map = zip_stats[zip_stats['count'] >= 20]['mean']
+                
+                # Apply hierarchical encoding
+                def get_location_score(row):
+                    if row['zip_code'] in zip_map:
+                        return zip_map[row['zip_code']]
+                    elif row['city'] in city_map:
+                        return city_map[row['city']]
+                    elif row['state'] in state_map:
+                        return state_map[row['state']]
+                    else:
+                        return global_mean
+                
+                viz_data['location_encoded'] = viz_data.apply(get_location_score, axis=1)
+            else:
+                # Use existing encoding maps from training
+                def get_location_score(row):
+                    if row['zip_code'] in self.zip_encoding_map:
+                        return self.zip_encoding_map[row['zip_code']]
+                    elif row['city'] in self.city_encoding_map:
+                        return self.city_encoding_map[row['city']]
+                    elif row['state'] in self.state_encoding_map:
+                        return self.state_encoding_map[row['state']]
+                    else:
+                        return self.global_mean_price
+                
+                viz_data['location_encoded'] = viz_data.apply(get_location_score, axis=1)
 
         plt.figure(figsize=(8, 6))
         # correlate only numeric columns
@@ -281,6 +312,3 @@ class RealEstateModel:
         prediction = np.expm1(log_prediction)
         
         return f"${prediction:,.2f}", loc_status
-
-
-
