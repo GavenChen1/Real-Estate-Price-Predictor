@@ -364,3 +364,35 @@ class RealEstateModel:
             desc = "Car-Dependent. Almost all errands require a car"
 
         return score, desc
+
+    def get_feature_importance_plot(self):
+        """
+        Generates a bar chart showing which features affect price the most.
+        """
+        if self.model is None:
+            return None
+
+        # Note: This only works for Random Forest / Gradient Boosting, not Linear Regression
+        try:
+            importances = self.model.feature_importances_
+        except AttributeError:
+            return None
+
+        # use train_features (bed, bath, acre_lot, house_size, location_encoded)
+        feature_names = self.train_features
+
+        df_imp = pd.DataFrame({'feature': feature_names, 'importance': importances})
+        df_imp = df_imp.sort_values('importance', ascending=False)
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.barplot(x='importance', y='feature', data=df_imp, ax=ax, palette='viridis')
+
+        ax.set_title("Feature Importance Distribution")
+        ax.set_xlabel("Importance Score (0.0 - 1.0)")
+        ax.set_ylabel("Feature")
+        plt.tight_layout()
+
+        return fig
+
+        
