@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import io
+import random
 
 class RealEstateModel:
     def __init__(self):
