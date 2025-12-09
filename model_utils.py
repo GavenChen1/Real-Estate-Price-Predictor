@@ -386,7 +386,7 @@ class RealEstateModel:
 
         # Plot
         fig, ax = plt.subplots(figsize=(8, 6))
-        sns.barplot(x='importance', y='feature', data=df_imp, ax=ax, palette='viridis')
+        sns.barplot(x='importance', y='feature', hue='feature', data=df_imp, ax=ax, palette='viridis', legend=False)
 
         ax.set_title("Feature Importance Distribution")
         ax.set_xlabel("Importance Score (0.0 - 1.0)")
