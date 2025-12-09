@@ -62,6 +62,23 @@ class RealEstateModel:
             df = df[df['price'] > 0]
             # House size must be positive (greater than 0 sqft)
             df = df[df['house_size'] > 0]
+
+            # remove outliers based on price, house size, acer lot, only consider the normal price in this model
+            min_price = df['price'].quantile(0.01)
+            max_price = df['price'].quantile(0.99)
+
+            min_size = df['house_size'].quantile(0.01)
+            max_size = df['house_size'].quantile(0.99)
+
+            df = df[
+                (df['price'] > min_price) &
+                (df['price'] < max_price) &
+                (df['house_size'] > min_size) &
+                (df['house_size'] < max_size) &
+                (df['house_size'] > 200) &
+                (df['house_size'] < 8000) &
+                (df['acre_lot'] < 20) 
+                ]
             
             # STEP 4: Downsample the dataset (Performance Optimization)
             # Only sample if sample_size is explicitly provided
