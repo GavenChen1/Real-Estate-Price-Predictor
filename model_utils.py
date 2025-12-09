@@ -332,7 +332,7 @@ class RealEstateModel:
         return f"${prediction:,.2f}", loc_status
 
         # ----UPDATE: 12/08/2025 Add mock walkable score----
-        def get_mock_walkable_score(self, zip_code):
+    def get_mock_walkable_score(self, zip_code):
         """
         Simulates fetching 'walkable score' from an external API based on zip code.
         returns: (score, description)
