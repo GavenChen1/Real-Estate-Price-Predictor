@@ -312,3 +312,37 @@ class RealEstateModel:
         prediction = np.expm1(log_prediction)
         
         return f"${prediction:,.2f}", loc_status
+
+        # ----UPDATE: 12/08/2025 Add mock walkable score----
+        def get_mock_walkable_score(self, zip_code):
+        """
+        Simulates fetching 'walkable score' from an external API based on zip code.
+        returns: (score, description)
+        """
+        # make sure it is string
+        z = str(zip_code).strip()
+        # mock walkable score logic: "big cities" will have higher score
+        if z.startswith(('0', '1', '9')):
+            base = 85
+        elif z.startswith(('3', '4')):
+            base = 40
+        else:
+            base = 60
+
+        # add random oscillation
+        score = base + random.randint(-15, 10)
+        score = max(0, min(100, score))  # range 0-100
+
+        # comments based on walkable level
+        if score >= 90:
+            desc = "Walker's Paradise. Daily errands do not require a car"
+        elif score >= 70:
+            desc = "Very Walkable. Most errands can be accomplished on foot"
+        elif score >= 50:
+            desc = "Somewhat Walkable. Some errands can be accomplished on foot"
+        elif score >= 25:
+            desc = "Car-Dependent. Most errands require a car"
+        else:
+            desc = "Car-Dependent. Almost all errands require a car"
+
+        return score, desc
