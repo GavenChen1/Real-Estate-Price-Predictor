@@ -241,6 +241,20 @@ class RealEstateApp:
             zip_code = self.inputs['Zip Code'].get()
             city = self.inputs['City'].get()   # Get city input
             state = self.inputs['State'].get() # Get state input
+
+            # Add warnings in case the user input invalid values by mistake
+            if bed < 0 or bath < 0 or house_size < 0:
+                messagebox.showerror("Logic Error", "Values cannot be negative")
+                return
+
+            if house_size < 100:
+                # Ask user to confirm if they really meant a tiny house
+                if not messagebox.askyesno("Warning", f"House size ({house_size} sqft) is extremely small. Do you still want to proceed?"):
+                    return
+            if acre_lot > 20:
+                # Ask user to confirm if they really meant a huge acre lot
+                if not messagebox.askyesno("Warning", f"Acre lot ({acre_lot}) is extremely large. Do you still want to proceed?"):
+                    return
             
             price_pred, loc_score = self.model_system.predict(bed, bath, acre_lot, house_size, zip_code, city, state)
             
