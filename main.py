@@ -84,7 +84,10 @@ class RealEstateApp:
         self.viz_corr_btn.pack(fill="x", pady=2)
         self.viz_dist_btn = ttk.Button(control_frame, text="Show Price Dist.", command=self.show_distribution)
         self.viz_dist_btn.pack(fill="x", pady=2)
-        
+        self.viz_feat_btn = ttk.Button(control_frame, text="Show Feature Importance",
+                                       command=self.show_feature_importance)
+        self.viz_feat_btn.pack(fill="x", pady=2)
+
         # Model Training
         ttk.Separator(control_frame, orient="horizontal").pack(fill="x", pady=10)
         ttk.Label(control_frame, text="3. Model Training").pack(fill="x", pady=(0, 5))
