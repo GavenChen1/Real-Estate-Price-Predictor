@@ -196,6 +196,21 @@ class RealEstateApp:
         fig = self.model_system.get_distribution_plot()
         self.display_figure(fig)
 
+    def show_feature_importance(self):
+        """
+        Display of feature importance plot.
+        """
+        # Check if model is trained first
+        if self.model_system.model is None:
+            messagebox.showwarning("Warning", "Please train the model first!")
+            return
+
+        fig = self.model_system.get_feature_importance_plot()
+        if fig:
+            self.display_figure(fig)
+        else:
+            messagebox.showinfo("Info", "Feature importance not available for this model type.")
+
     def train_model(self):
         """
         Handle model training via GUI interaction.
