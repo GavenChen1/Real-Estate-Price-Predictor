@@ -244,8 +244,13 @@ class RealEstateApp:
             
             price_pred, loc_score = self.model_system.predict(bed, bath, acre_lot, house_size, zip_code, city, state)
             
+            walkable_score, walkable_desc = self.model_system.get_mock_walkable_score(zip_code)
+
             self.result_lbl.config(text=f"Prediction: {price_pred}")
-            self.loc_score_lbl.config(text=f"Location Score: {loc_score}")
+
+            # show walkable score in the output module
+            final_status = f"Area Price: {loc_score}\nWalkability: {walkable_score}/100 ({walkable_desc})"
+            self.loc_score_lbl.config(text=final_status)
             
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numeric values for Bed, Bath, etc.")
