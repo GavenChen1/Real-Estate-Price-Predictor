@@ -66,6 +66,16 @@ def main():
     msg = model.load_data(DATA_FILE, sample_size=None)
     print("Load message:", msg)
 
+    # Validate required columns after loading data
+    required_cols = ["bed", "bath", "acre_lot", "house_size", "zip_code", "city", "state"]
+    missing_cols = [col for col in required_cols if col not in model.data.columns]
+
+    if missing_cols:
+        print("ERROR: Missing required columns:", missing_cols)
+        return
+    else:
+        print("All required feature columns are present.")
+
     # Test three model types with 5-fold cross-validation
     for m in ["Linear Regression", "Random Forest", "Gradient Boosting"]:
         run_one_model(model, model_type=m, use_cv=True)
@@ -79,4 +89,5 @@ if __name__ == "__main__":
 
     # This line prints to the console (not into the file) to confirm completion
     print("Test report has been generated: test_report.txt")
+
 
