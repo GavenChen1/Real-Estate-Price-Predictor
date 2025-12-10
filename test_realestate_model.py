@@ -42,6 +42,16 @@ def test_column_integrity(model):
     for col in required_cols:
         assert col in model.data.columns, f"Missing required column: {col}"
 
+def test_train_model(model):
+    """
+    Test that a Random Forest model can be trained successfully.
+    """
+    msg = model.train_model("Random Forest", use_cv=False)
+    assert model.model is not None, "Model training failed."
+
+
+
+
 
 
 
