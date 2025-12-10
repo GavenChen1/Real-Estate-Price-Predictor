@@ -24,4 +24,13 @@ def model():
     assert m.data is not None, "Dataset failed to load."
     assert len(m.data) > 0, "Dataset appears to be empty."
     return m
+    
+def test_load_data(model):
+    """
+    Test that dataset is loaded correctly and key columns exist.
+    """
+    assert "bed" in model.data.columns
+    assert "bath" in model.data.columns
+    assert "acre_lot" in model.data.columns
+
 
