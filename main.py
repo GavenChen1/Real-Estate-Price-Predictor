@@ -236,7 +236,7 @@ class RealEstateApp:
         if fig:
             self.display_figure(fig)
         else:
-            messagebox.showinfo("Info", "Feature importance not available for this model type.")
+            messagebox.showinfo("Info", "Feature importance only available for random forest.")
 
     def train_model(self):
         """
