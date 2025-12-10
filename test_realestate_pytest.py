@@ -1,11 +1,8 @@
-# ------------------------------------------------------------
 # Author: Zhihao Wu
 # Date: 2025-12-09
 # File: test_realestate_pytest.py
 # Description:
-#   Pytest-based unit tests for RealEstateModel.
-#   All comments and docstrings are in English as required.
-# ------------------------------------------------------------
+# Pytest-based unit tests for RealEstateModel.
 
 import pytest
 import os
@@ -90,3 +87,4 @@ def test_predict(model):
     assert isinstance(price, float), "Predicted price is not a float."
     assert price > 0, "Predicted price is not positive."
     assert isinstance(loc, dict), "Location info should be a dictionary."
+
