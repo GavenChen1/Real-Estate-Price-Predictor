@@ -22,6 +22,12 @@ def run_one_model(model: RealEstateModel, model_type: str, use_cv: bool = True):
     msg = model.train_model(model_type=model_type, use_cv=use_cv)
     print("Train message:", msg)
 
+    # Ensure the model object exists after training
+if model.model is None:
+    print("ERROR: Model object was not created correctly!")
+else:
+    print("Model object created successfully.")
+
     # Evaluate on the hold-out test set
     metrics = model.evaluate_model()
     print("\n--- Metrics on hold-out test set ---")
@@ -73,3 +79,4 @@ if __name__ == "__main__":
 
     # This line prints to the console (not into the file) to confirm completion
     print("Test report has been generated: test_report.txt")
+
