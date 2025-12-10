@@ -33,4 +33,15 @@ def test_load_data(model):
     assert "bath" in model.data.columns
     assert "acre_lot" in model.data.columns
 
+def test_column_integrity(model):
+    """
+    Verify that all required feature columns are present.
+    """
+    required_cols = ["bed", "bath", "acre_lot", "house_size",
+                     "zip_code", "city", "state"]
+    for col in required_cols:
+        assert col in model.data.columns, f"Missing required column: {col}"
+
+
+
 
