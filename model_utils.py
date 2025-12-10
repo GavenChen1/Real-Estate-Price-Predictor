@@ -372,7 +372,7 @@ class RealEstateModel:
         if self.model is None:
             return None
 
-        # Note: This only works for Random Forest / Gradient Boosting, not Linear Regression
+        # Note: Feature importance only works for random forest
         try:
             importances = self.model.feature_importances_
         except AttributeError:
