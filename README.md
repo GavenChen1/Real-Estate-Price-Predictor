@@ -25,4 +25,8 @@ A machine learning application to predict house prices based on property feature
 - Ensure `realtor-data.zip.csv` is in the project directory or select it manually using the "Load Data" button.
 - Click "Train Model" to build the predictor.
 - Use the input fields to predict prices for new properties.
+- **Sample Size Control**: Enter a number in the "Sample Size" field to limit the dataset size (default: 50000). Enter `0` to load the full dataset. Note: The full dataset is quite large and may take several minutes to train with Random Forest, so using a smaller sample size is recommended for faster testing and development.
+
+## GUI Notes
+- **Scrollbar Usage**: The scrollbar can only be used by clicking and dragging it up or down. The mouse scroll wheel does not work with the scrollbar in this application.
 

@@ -74,6 +74,16 @@ class RealEstateApp:
         ttk.Label(control_frame, text="1. Data Management").pack(fill="x", pady=(0, 5))
         self.load_btn = ttk.Button(control_frame, text="Load Data (CSV)", command=self.load_data)
         self.load_btn.pack(fill="x", pady=2)
+        
+        # Sample size control
+        sample_frame = ttk.Frame(control_frame)
+        sample_frame.pack(fill="x", pady=2)
+        ttk.Label(sample_frame, text="Sample Size:", width=12).pack(side="left")
+        self.sample_size_var = tk.StringVar(value="50000")
+        sample_entry = ttk.Entry(sample_frame, textvariable=self.sample_size_var, width=10)
+        sample_entry.pack(side="left", padx=2)
+        ttk.Label(sample_frame, text="(0 = full dataset)", font=("Arial", 8), foreground="gray").pack(side="left", padx=2)
+        
         self.status_lbl = ttk.Label(control_frame, text="No data loaded", foreground="gray", wraplength=200) # Added wraplength
         self.status_lbl.pack(fill="x", pady=2)
         
@@ -157,8 +167,22 @@ class RealEstateApp:
         self.status_lbl.config(text="Loading...", foreground="blue")
         self.root.update()
         
-        # Load full dataset (sample_size=None) for maximum accuracy
-        msg = self.model_system.load_data(filepath, sample_size=None)
+        # Get sample size from GUI
+        try:
+            sample_size_str = self.sample_size_var.get().strip()
+            if sample_size_str == "" or sample_size_str == "0":
+                sample_size = None  # Load full dataset
+            else:
+                sample_size = int(sample_size_str)
+                if sample_size < 0:
+                    raise ValueError("Sample size must be positive")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number for sample size (0 for full dataset)")
+            self.status_lbl.config(text="Error: Invalid sample size", foreground="red")
+            return
+        
+        # Load dataset with specified sample size
+        msg = self.model_system.load_data(filepath, sample_size=sample_size)
         self.status_lbl.config(text=msg[:30] + "...", foreground="green")
         messagebox.showinfo("Info", msg)
 
