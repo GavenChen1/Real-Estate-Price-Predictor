@@ -1,12 +1,12 @@
 # Author: Zhihao Wu
 # Date: 2025-12-9
 # test_ames_model.py
-# Use ames_for_app.csv to test RealEstateModel and write results to test_report.txt
+# Use realtor-data.zip.csv to test RealEstateModel and write results to test_report.txt
 
 from model_utils import RealEstateModel
 import contextlib
 
-DATA_FILE = "ames_for_app.csv"
+DATA_FILE = "realtor-data.zip.csv"
 
 
 def run_one_model(model: RealEstateModel, model_type: str, use_cv: bool = True):
@@ -89,5 +89,6 @@ if __name__ == "__main__":
 
     # This line prints to the console (not into the file) to confirm completion
     print("Test report has been generated: test_report.txt")
+
 
 
