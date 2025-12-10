@@ -60,6 +60,30 @@ def test_evaluate_model(model):
     assert "R2" in metrics, "Missing R2 metric."
     assert metrics["MSE"] >= 0, "Invalid MSE value returned."
 
+def test_predict(model):
+    """
+    Test that the prediction function returns valid results.
+    """
+    model.train_model("Random Forest", use_cv=False)
+
+    row = model.data.iloc[0]
+
+    price, loc = model.predict(
+        bed=row["bed"],
+        bath=row["bath"],
+        acre_lot=row["acre_lot"],
+        house_size=row["house_size"],
+        zip_code=row["zip_code"],
+        city=row["city"],
+        state=row["state"],
+    )
+
+    assert isinstance(price, float), "Predicted price is not a float."
+    assert price > 0, "Predicted price is not positive."
+    assert isinstance(loc, dict), "Location info should be a dictionary."
+
+
+
 
 
 
