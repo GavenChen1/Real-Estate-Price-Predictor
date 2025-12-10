@@ -49,6 +49,19 @@ def test_train_model(model):
     msg = model.train_model("Random Forest", use_cv=False)
     assert model.model is not None, "Model training failed."
 
+def test_evaluate_model(model):
+    """
+    Test that evaluate_model returns valid metrics.
+    """
+    model.train_model("Random Forest", use_cv=False)
+    metrics = model.evaluate_model()
+
+    assert "MSE" in metrics, "Missing MSE metric."
+    assert "R2" in metrics, "Missing R2 metric."
+    assert metrics["MSE"] >= 0, "Invalid MSE value returned."
+
+
+
 
 
 
